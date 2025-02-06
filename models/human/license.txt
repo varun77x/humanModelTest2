@@ -1,0 +1,11 @@
+Model Information:
+* title:	Anatomy study 2.0 Basemesh Human Male Body
+* source:	https://sketchfab.com/3d-models/anatomy-study-20-basemesh-human-male-body-c3f13a4baa2f4ea5a0a88d29e7fa1779
+* author:	zeroran (https://sketchfab.com/zeroran)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Anatomy study 2.0 Basemesh Human Male Body" (https://sketchfab.com/3d-models/anatomy-study-20-basemesh-human-male-body-c3f13a4baa2f4ea5a0a88d29e7fa1779) by zeroran (https://sketchfab.com/zeroran) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
