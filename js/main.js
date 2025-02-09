@@ -40,10 +40,31 @@ document.body.appendChild(labelRenderer.domElement);
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
+function addLabelToBox(box, text) {
+  // Create a div for the label
+  const labelDiv = document.createElement('div');
+  labelDiv.className = 'label';
+  labelDiv.textContent = text; // Custom text for the label
+  labelDiv.style.color = 'white';
+  labelDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  labelDiv.style.padding = '5px';
+  labelDiv.style.borderRadius = '5px';
+  labelDiv.style.visibility = 'hidden'; // Hide by default
+
+  // Create a CSS2DObject and attach it to the box
+  const label = new CSS2DObject(labelDiv);
+  label.position.set(0, 0, 0); // Adjust the position relative to the box
+  box.add(label);
+
+  // Store the label in the box's userData for easy access
+  box.userData.label = label;
+}
+
 // Add event listeners
 renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
 renderer.domElement.addEventListener('touchend', onTouchEnd, { passive: false });
 renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
+
 
 // Load model
 const loader = new GLTFLoader();
@@ -164,6 +185,10 @@ loader.load(
     });
 
     clickableBoxes = boxes;
+
+    clickableBoxes.forEach((box, index) => {
+      addLabelToBox(box, `Box ${index + 1}`); // Add a label with custom text
+    });
   },
   (xhr) => console.log(`${(xhr.loaded / xhr.total * 100)}% loaded`),
   (error) => console.error(error)
@@ -289,6 +314,7 @@ window.addEventListener("mousemove", (event) => {
 
   if (hoveredBox) {
     hoveredBox.material.color.setHex(originalColors.get(hoveredBox));
+    hoveredBox.userData.label.element.style.visibility = 'hidden';
     hoveredBox.material.opacity = 0;
     hoveredBox = null;
   }
@@ -297,6 +323,9 @@ window.addEventListener("mousemove", (event) => {
     hoveredBox = intersects[0].object;
     hoveredBox.material.color.setHex(HOVER_COLOR);
     hoveredBox.material.opacity = 0.5;
+    if (hoveredBox.userData.label) {
+      hoveredBox.userData.label.element.style.visibility = 'visible'; // Show the label
+    }
   }
 });
 
@@ -335,7 +364,7 @@ controls.minDistance = 1.4;
 controls.maxDistance = 1.4;
 controls.enableZoom = true;
 controls.enableRotate = true;
-controls.enablePan = true;
+controls.enablePan = false;
 
 // Control state management
 let isDragging = false;
