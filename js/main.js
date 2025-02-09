@@ -65,7 +65,7 @@ renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: fals
 renderer.domElement.addEventListener('touchend', onTouchEnd, { passive: false });
 renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
 
-
+// const modelMeshes = [];
 // Load model
 const loader = new GLTFLoader();
 loader.load(
@@ -74,6 +74,14 @@ loader.load(
     humanModel = gltf.scene;
     scene.add(humanModel);
     humanModel.position.y = -0.95;
+
+    // humanModel.traverse((child) => {
+    //   if (child.isMesh) {
+    //     child.castShadow = true;
+    //     child.receiveShadow = true;
+    //     modelMeshes.push(child); // Add the child mesh to the array
+    //   }
+    // });
 
     const createBoxMaterial = () => new THREE.MeshBasicMaterial({
       color: 0xffffff,
@@ -310,36 +318,56 @@ window.addEventListener("mousemove", (event) => {
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
 
-  const intersects = raycaster.intersectObjects(clickableBoxes);
-
+  const intersects = raycaster.intersectObjects([...clickableBoxes, humanModel], true);
+  
   if (hoveredBox) {
     hoveredBox.material.color.setHex(originalColors.get(hoveredBox));
-    hoveredBox.userData.label.element.style.visibility = 'hidden';
+    if (hoveredBox.userData.label && hoveredBox.userData.label.element) {
+      hoveredBox.userData.label.element.style.visibility = "hidden";
+    }
     hoveredBox.material.opacity = 0;
     hoveredBox = null;
   }
-
   if (intersects.length > 0) {
-    hoveredBox = intersects[0].object;
-    hoveredBox.material.color.setHex(HOVER_COLOR);
-    hoveredBox.material.opacity = 0.5;
-    if (hoveredBox.userData.label) {
-      hoveredBox.userData.label.element.style.visibility = 'visible'; // Show the label
+    const firstHit = intersects[0].object; // Closest object hit by the ray
+
+    if (clickableBoxes.includes(firstHit)) {
+      hoveredBox = firstHit;
+      hoveredBox.material.opacity = 0.5;
+      hoveredBox.material.color.setHex(HOVER_COLOR);
+
+      if (hoveredBox.userData.label) {
+        hoveredBox.userData.label.element.style.visibility = "visible";
+      }
     }
   }
+  // if (intersects.length > 0) {
+  //   hoveredBox = intersects[0].object;
+  //   hoveredBox.material.color.setHex(HOVER_COLOR);
+  //   hoveredBox.material.opacity = 0.5;
+  //   if (hoveredBox.userData.label) {
+  //     hoveredBox.userData.label.element.style.visibility = 'visible'; // Show the label
+  //   }
+  // }
 });
 
 window.addEventListener("click", (event) => {
+  if (isDragging) return; // Prevent clicks when dragging
+
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-  
-  if (isDragging) return;
-  
-  const intersects = raycaster.intersectObjects(clickableBoxes);
+
+  // Perform raycasting on clickableBoxes + humanModel (to filter out hidden boxes)
+  const intersects = raycaster.intersectObjects([...clickableBoxes, humanModel], true);
+
   if (intersects.length > 0) {
-    handleBoxClick(intersects[0].object);
+    const firstHit = intersects[0].object; // Closest object hit
+
+    if (clickableBoxes.includes(firstHit)) {
+      handleBoxClick(firstHit); // Only trigger click on valid boxes
+    }
   }
 });
 
