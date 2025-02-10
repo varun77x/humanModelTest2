@@ -208,29 +208,52 @@ let currentTouchedBox = null;
 
 // Modified touch handlers
 function onTouchStart(event) {
-  if (event.touches.length !== 1) return;
-  
-  const touch = event.touches[0];
-  touchStartTime = Date.now();
-  touchStartPosition.x = touch.clientX;
-  touchStartPosition.y = touch.clientY;
-  touchMoved = false;
-  isTouchDragging = false;
-  currentTouchedBox = null;
+  if (event.touches.length !== 1) return; // Ignore multi-touch
 
-  // Check initial touch position
+  const touch = event.touches[0];
+  touchStartTime = Date.now(); // Record the start time of the touch
+  touchStartPosition.x = touch.clientX; // Store the initial touch X position
+  touchStartPosition.y = touch.clientY; // Store the initial touch Y position
+  touchMoved = false; // Reset touch movement flag
+  isTouchDragging = false; // Reset dragging flag
+  currentTouchedBox = null; // Reset the currently touched box
+  touchStartedOnBox = false; // Reset the flag for touch starting on a box
+
+  // Convert touch position to normalized device coordinates
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
 
+  // Update the raycaster with the touch position
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(clickableBoxes);
+
+  // Perform raycasting on clickableBoxes + humanModel (to filter out hidden boxes)
+  const intersects = raycaster.intersectObjects([...clickableBoxes, humanModel], true);
 
   if (intersects.length > 0) {
-    event.preventDefault();
-    currentTouchedBox = intersects[0].object;
-    touchStartedOnBox = true;
+    const firstHit = intersects[0].object; // Get the closest intersected object
+
+    // Check if the first hit is a clickable box and not hidden behind the humanModel
+    if (clickableBoxes.includes(firstHit)) {
+      event.preventDefault(); // Prevent default browser behavior (e.g., scrolling)
+      currentTouchedBox = firstHit; // Store the intersected box
+      touchStartedOnBox = true; // Mark that the touch started on a box
+      
+      if (currentTouchedBox.userData.label) {
+        currentTouchedBox.userData.label.element.style.visibility = "visible";
+      }
+      let tempBox = currentTouchedBox;
+      setTimeout(()=>{
+        if (tempBox.userData.label) tempBox.userData.label.element.style.visibility = "hidden";
+        tempBox.material.opacity = 0;
+      },200)
+      // Store the original color of the box (if not already stored)
+      // if (!originalColors.has(currentTouchedBox)) {
+      //   originalColors.set(currentTouchedBox, currentTouchedBox.material.color.getHex());
+      // }
+    }
   }
+  
 }
 function onTouchMove(event) {
   if (event.touches.length !== 1) return;
@@ -243,38 +266,45 @@ function onTouchMove(event) {
     touchMoved = true;
     isTouchDragging = true;
   }
-  const intersects = raycaster.intersectObjects([...clickableBoxes, humanModel], true);
+  // const intersects = raycaster.intersectObjects([...clickableBoxes, humanModel], true);
   
-  if (hoveredBox) {
-    hoveredBox.material.color.setHex(originalColors.get(hoveredBox));
-    if (hoveredBox.userData.label && hoveredBox.userData.label.element) {
-      hoveredBox.userData.label.element.style.visibility = "hidden";
-    }
-    hoveredBox.material.opacity = 0;
-    hoveredBox = null;
-  }
-  if (intersects.length > 0) {
-    const firstHit = intersects[0].object; // Closest object hit by the ray
+  // if (hoveredBox) {
+  //   hoveredBox.material.color.setHex(originalColors.get(hoveredBox));
+  //   if (hoveredBox.userData.label && hoveredBox.userData.label.element) {
+  //     hoveredBox.userData.label.element.style.visibility = "hidden";
+  //   }
+  //   hoveredBox.material.opacity = 0;
+  //   hoveredBox = null;
+  // }
+  // if (intersects.length > 0) {
+  //   const firstHit = intersects[0].object; // Closest object hit by the ray
 
-    if (clickableBoxes.includes(firstHit)) {
-      hoveredBox = firstHit;
-      // hoveredBox.material.opacity = 0.5;
-      // hoveredBox.material.color.setHex(HOVER_COLOR);
+  //   if (clickableBoxes.includes(firstHit)) {
+  //     hoveredBox = firstHit;
+  //     // hoveredBox.material.opacity = 0.5;
+  //     // hoveredBox.material.color.setHex(HOVER_COLOR);
 
-      if (hoveredBox.userData.label) {
-        hoveredBox.userData.label.element.style.visibility = "visible";
-      }
-    }
-  }
+  //     if (hoveredBox.userData.label) {
+  //       hoveredBox.userData.label.element.style.visibility = "visible";
+  //     }
+  //   }
+  // }
+  
 }
 
 function onTouchEnd(event) {
   if (event.touches.length > 0) return;
   
+  
   const touchDuration = Date.now() - touchStartTime;
   const isTap = !touchMoved && touchDuration < 300;
 
   if (isTap && currentTouchedBox) {
+    
+  //   if(currentTouchedBox.material.opacity !== 0) currentTouchedBox.material.opacity = 0;
+  // if(currentTouchedBox.userData.label.element.style.visibility === "visible"){
+  //   currentTouchedBox.userData.label.element.style.visibility = "hidden";
+  // }
     // Handle the click immediately using the stored box reference
     handleBoxClick(currentTouchedBox);
   }
@@ -313,22 +343,46 @@ function handleTouchEvent(event) {
 function handleBoxClick(clickedBox) {
   clickedBox.material.color.setHex(HOVER_COLOR);
   clickedBox.material.opacity = 0.5;
+  if (clickedBox.userData.label) {
+    
+    clickedBox.userData.label.element.style.visibility = "visible";
+  }
   
   setTimeout(() => {
+    
     clickedBox.material.opacity = 0;
+
   }, 300);
 
   const links = [
-    "https://example.com/head",
-    "https://example.com/upperleft-arm",
-    "https://example.com/upperright-arm",
-    "https://example.com/leftForearm",
-    "https://example.com/rightForearm",
-    "https://example.com/Upperchest",
-    "https://google.com"
+    "https://google.com", //0
+    "https://google.com", //1
+    "https://google.com", //2
+    "https://google.com", //3
+    "https://google.com", //4
+    "https://google.com", //5
+    "https://google.com", //6
+    "https://google.com", //7
+    "https://google.com", //8
+    "https://google.com", //9
+    "https://google.com", //10
+    "https://google.com", //11
+    "https://google.com", //12
+    "https://google.com", //13
+    "https://google.com", //14
+    "https://google.com", //15
+    "https://google.com", //16
+    "https://google.com", //17
+    "https://google.com", //18
+    "https://google.com", //19
+    "https://google.com", //20
+    "https://google.com", //21
+    "https://google.com", //22
+    "https://google.com"  //23
   ];
 
   const boxIndex = clickableBoxes.indexOf(clickedBox);
+  
   if (links[boxIndex]) {
     window.location.href = links[boxIndex];
   }
