@@ -93,17 +93,17 @@ loader.load(
     });
 
     // Geometries
-    const geometryHead = new THREE.BoxGeometry(0.2, 0.25, 0.28);
+    const geometryHead = new THREE.BoxGeometry(0.2, 0.23, 0.22);
     const geometryUpperArm = new THREE.BoxGeometry(0.1,0.3,0.17);
     const geometryForearm = new THREE.BoxGeometry(0.1, 0.315, 0.12);
-    const geometryUpperChest = new THREE.BoxGeometry(0.29,0.13,0.015);
+    const geometryUpperChest = new THREE.BoxGeometry(0.3,0.13,0.015);
     const geometryTorso = new THREE.BoxGeometry(0.29,0.33,0.015);
     const geometryHand = new THREE.BoxGeometry(0.1,0.162,0.18);
     const geometryKnee = new THREE.BoxGeometry(0.1,0.1,0.1);
     const geometryShin = new THREE.BoxGeometry(0.125,0.27,0.06);
     const geometryCalf = new THREE.BoxGeometry(0.125,0.27,0.05);
     const geometryFoot = new THREE.BoxGeometry(0.125,0.1,0.29);
-    const geometryThigh = new THREE.BoxGeometry(0.15,0.27,0.06);
+    const geometryThigh = new THREE.BoxGeometry(0.15,0.28,0.06);
     const geometryBackLeg = new THREE.BoxGeometry(0.15,0.38,0.075);
     const geometryTopBack = new THREE.BoxGeometry(0.32,0.16,0.05);
     const geometryMiddleBack = new THREE.BoxGeometry(0.29,0.15,0.05);
@@ -137,7 +137,7 @@ loader.load(
     ];
 
     // Positions
-    boxes[0].position.set(0,5,0);
+    boxes[0].position.set(0,1.7,-0.025);
     boxes[1].position.set(-0.23, 1.335, -0.098);
     boxes[2].position.set(0.23, 1.335, -0.098);
     boxes[3].position.set(-0.2868, 1.03, -0.07);
@@ -243,6 +243,29 @@ function onTouchMove(event) {
     touchMoved = true;
     isTouchDragging = true;
   }
+  const intersects = raycaster.intersectObjects([...clickableBoxes, humanModel], true);
+  
+  if (hoveredBox) {
+    hoveredBox.material.color.setHex(originalColors.get(hoveredBox));
+    if (hoveredBox.userData.label && hoveredBox.userData.label.element) {
+      hoveredBox.userData.label.element.style.visibility = "hidden";
+    }
+    hoveredBox.material.opacity = 0;
+    hoveredBox = null;
+  }
+  if (intersects.length > 0) {
+    const firstHit = intersects[0].object; // Closest object hit by the ray
+
+    if (clickableBoxes.includes(firstHit)) {
+      hoveredBox = firstHit;
+      // hoveredBox.material.opacity = 0.5;
+      // hoveredBox.material.color.setHex(HOVER_COLOR);
+
+      if (hoveredBox.userData.label) {
+        hoveredBox.userData.label.element.style.visibility = "visible";
+      }
+    }
+  }
 }
 
 function onTouchEnd(event) {
@@ -292,7 +315,7 @@ function handleBoxClick(clickedBox) {
   clickedBox.material.opacity = 0.5;
   
   setTimeout(() => {
-    // clickedBox.material.opacity = 0;
+    clickedBox.material.opacity = 0;
   }, 300);
 
   const links = [
@@ -333,8 +356,8 @@ window.addEventListener("mousemove", (event) => {
 
     if (clickableBoxes.includes(firstHit)) {
       hoveredBox = firstHit;
-      hoveredBox.material.opacity = 0.5;
-      hoveredBox.material.color.setHex(HOVER_COLOR);
+      // hoveredBox.material.opacity = 0.5;
+      // hoveredBox.material.color.setHex(HOVER_COLOR);
 
       if (hoveredBox.userData.label) {
         hoveredBox.userData.label.element.style.visibility = "visible";
