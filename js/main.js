@@ -198,7 +198,10 @@ loader.load(
       addLabelToBox(box, `Box ${index + 1}`); // Add a label with custom text
     });
   },
-  (xhr) => console.log(`${(xhr.loaded / xhr.total * 100)}% loaded`),
+  (xhr) => {
+    const percentLoaded = xhr.total ? (xhr.loaded / xhr.total * 100).toFixed(2) : "Unknown";
+    console.log(`${percentLoaded}% loaded`);
+  },
   (error) => console.error(error)
 );
 
