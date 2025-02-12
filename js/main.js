@@ -387,7 +387,8 @@ function handleBoxClick(clickedBox) {
   const boxIndex = clickableBoxes.indexOf(clickedBox);
   
   if (links[boxIndex]) {
-    window.location.href = links[boxIndex];
+    // window.location.href = links[boxIndex];
+    window.open(links[boxIndex], "_blank");
   }
 }
 
